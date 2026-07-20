@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>词汇量测评</title>
+<style>
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue: #4A90D9;
+  --blue-dark: #3A7BC8;
+  --green: #52C41A;
+  --red: #E74C3C;
+  --orange: #F39C12;
+  --bg: #F7F8FA;
+  --card: #FFFFFF;
+  --text: #2C3E50;
+  --text-light: #7F8C8D;
+  --border: #E8ECF1;
+  --shadow: 0 2px 16px rgba(0,0,0,0.06);
+  --radius: 14px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.container {
+  width: 100%;
+  max-width: 480px;
+  position: relative;
+}
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 36px 28px;
+  text-align: center;
+}
+
+/* ===== Welcome Page ===== */
+.welcome .icon {
+  font-size: 56px;
+  margin-bottom: 16px;
+}
+
+.welcome h1 {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.welcome .subtitle {
+  font-size: 14px;
+  color: var(--text-light);
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
+
+.welcome .rules {
+  text-align: left;
+  background: #F0F5FF;
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 28px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: #555;
+}
+
+.welcome .rules span {
+  font-weight: 600;
+  color: var(--blue-dark);
+}
+
+/* ===== Buttons ===== */
+.btn {
+  display: inline-block;
+  padding: 14px 48px;
+  font-size: 17px;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  letter-spacing: 0.5px;
+}
+
+.btn-primary {
+  background: var(--blue);
+  color: #fff;
+}
+
+.btn-primary:hover { background: var(--blue-dark); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+
+.btn-outline {
+  background: #fff;
+  color: var(--blue);
+  border: 2px solid var(--blue);
+}
+
+.btn-outline:hover { background: #F0F5FF; }
+
+/* ===== Progress Bar ===== */
+.progress-wrap {
+  margin-bottom: 24px;
+}
+
+.level-tag {
+  display: inline-block;
+  background: #EEF2FF;
+  color: var(--blue-dark);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--blue);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+/* ===== Test Page ===== */
+.stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--text-light);
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.stat-dot.green { background: var(--green); }
+.stat-dot.red { background: var(--red); }
+
+.word-display {
+  font-size: 38px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text);
+  margin: 28px 0 24px;
+  word-break: break-all;
+}
+
+.input-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.input-group input {
+  flex: 1;
+  padding: 13px 16px;
+  font-size: 16px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.input-group input:focus {
+  border-color: var(--blue);
+}
+
+.input-group .btn {
+  padding: 13px 24px;
+  white-space: nowrap;
+}
+
+/* ===== Feedback ===== */
+.feedback {
+  min-height: 36px;
+  line-height: 36px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.feedback.correct { color: var(--green); }
+.feedback.wrong { color: var(--red); }
+.feedback .correct-word { font-weight: 400; font-size: 13px; color: var(--text-light); display: block; line-height: 1.5; }
+
+/* ===== Level Up Toast ===== */
+.level-up-toast {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--green);
+  color: #fff;
+  padding: 12px 28px;
+  border-radius: 24px;
+  font-weight: 700;
+  font-size: 15px;
+  box-shadow: 0 4px 20px rgba(82,196,26,0.35);
+  z-index: 100;
+  animation: toastIn 0.4s ease, toastOut 0.3s 1.5s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-16px); } }
+@keyframes toastOut { to { opacity: 0; transform: translateX(-50%) translateY(-16px); } }
+
+/* ===== Result Page ===== */
+.result .icon { font-size: 48px; margin-bottom: 12px; }
+
+.result .vocab-count {
+  font-size: 56px;
+  font-weight: 800;
+  color: var(--blue-dark);
+  line-height: 1.1;
+}
+
+.result .vocab-label {
+  font-size: 14px;
+  color: var(--text-light);
+  margin: 4px 0 20px;
+}
+
+.result .level-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  padding: 10px 32px;
+  border-radius: 26px;
+  margin-bottom: 24px;
+  letter-spacing: 1px;
+}
+
+.result .detail-list {
+  text-align: left;
+  background: #FAFBFC;
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+  font-size: 13px;
+  line-height: 2;
+  color: #666;
+}
+
+.result .detail-list strong { color: var(--text); }
+
+/* ===== Hidden ===== */
+.hidden { display: none !important; }
+
+/* ===== Mobile ===== */
+@media (max-width: 480px) {
+  .card { padding: 28px 18px; }
+  .word-display { font-size: 30px; margin: 22px 0 18px; }
+  .welcome h1 { font-size: 22px; }
+  .result .vocab-count { font-size: 44px; }
+  .input-group { flex-direction: column; }
+  .input-group .btn { width: 100%; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ==================== 欢迎页 ==================== -->
+  <div id="page-welcome" class="card welcome">
+    <div class="icon">📖</div>
+    <h1>词汇量测评</h1>
+    <p class="subtitle">抽样估算你的英语词汇量<br>全程不存储任何数据 · 每次都是全新测评</p>
+    <div class="rules">
+      📋 <span>测评规则</span><br>
+      1. 从小学级别开始，显示英文单词，输入中文释义<br>
+      2. 当前级别连续答对 <span>3</span> 题 → 自动晋升更高难度<br>
+      3. 全局累计答错 <span>4</span> 题 → 立即终止，生成测评结果<br>
+      4. 每个级别共 <span>8</span> 个难度档位：小学 ～ 雅思
+    </div>
+    <button class="btn btn-primary" onclick="startTest()">开始测评</button>
+  </div>
+
+  <!-- ==================== 测试页 ==================== -->
+  <div id="page-test" class="card hidden">
+    <!-- 进度条 -->
+    <div class="progress-wrap">
+      <div class="level-tag" id="level-tag">小学</div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <!-- 统计 -->
+    <div class="stats-row">
+      <div class="stat-item"><span class="stat-dot green"></span> 正确 <strong id="correct-count">0</strong></div>
+      <div class="stat-item"><span class="stat-dot red"></span> 错误 <strong id="wrong-count">0</strong>/4</div>
+    </div>
+
+    <!-- 单词 -->
+    <div class="word-display" id="word-display">—</div>
+
+    <!-- 输入 -->
+    <div class="input-group">
+      <input type="text" id="answer-input" placeholder="输入中文释义…" autocomplete="off" autofocus>
+      <button class="btn btn-primary" id="submit-btn" onclick="submitAnswer()">确认</button>
+    </div>
+
+    <!-- 反馈 -->
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <!-- ==================== 结果页 ==================== -->
+  <div id="page-result" class="card result hidden">
+    <div class="icon">🎉</div>
+    <div class="vocab-count" id="vocab-number">0</div>
+    <div class="vocab-label">估算词汇量</div>
+    <div class="level-badge" id="level-badge">—</div>
+    <div class="detail-list" id="detail-list"></div>
+    <button class="btn btn-primary" onclick="restartTest()">重新测评</button>
+  </div>
+
+</div>
+
+<script>
+// ===========================
+// 单词样本库（可自行扩充替换）
+// 每个级别独立数组，每个单词 en=英文 zh=可接受的中文释义数组
+// ===========================
+
+const WORD_BANKS = {
+
+  // ---- 小学 ----
+  primary: [
+    { en: "apple", zh: ["苹果"] },
+    { en: "book", zh: ["书","书本","书籍"] },
+    { en: "cat", zh: ["猫"] },
+    { en: "dog", zh: ["狗","犬"] },
+    { en: "teacher", zh: ["老师","教师"] },
+    { en: "school", zh: ["学校"] },
+    { en: "water", zh: ["水"] },
+    { en: "mother", zh: ["妈妈","母亲"] },
+    { en: "happy", zh: ["快乐","高兴","开心"] },
+    { en: "big", zh: ["大","大的"] },
+    { en: "run", zh: ["跑","跑步"] },
+    { en: "eat", zh: ["吃"] },
+    { en: "red", zh: ["红色","红"] },
+    { en: "one", zh: ["一","一个"] },
+    { en: "sun", zh: ["太阳"] },
+    { en: "bird", zh: ["鸟","小鸟"] },
+    { en: "fish", zh: ["鱼"] },
+    { en: "milk", zh: ["牛奶","奶"] },
+    { en: "hand", zh: ["手"] },
+    { en: "door", zh: ["门"] }
+  ],
+
+  // ---- 初中 ----
+  junior: [
+    { en: "bridge", zh: ["桥","桥梁"] },
+    { en: "courage", zh: ["勇气","勇敢"] },
+    { en: "discover", zh: ["发现","发觉"] },
+    { en: "enemy", zh: ["敌人","敌"] },
+    { en: "fever", zh: ["发烧","发热"] },
+    { en: "guard", zh: ["保卫","守卫","警卫"] },
+    { en: "honest", zh: ["诚实","诚实正直","老实"] },
+    { en: "invent", zh: ["发明","创造"] },
+    { en: "journey", zh: ["旅行","旅程","旅途"] },
+    { en: "knowledge", zh: ["知识","学问"] },
+    { en: "language", zh: ["语言"] },
+    { en: "medicine", zh: ["药","药物","药品","医学"] },
+    { en: "nervous", zh: ["紧张","紧张不安","焦虑"] },
+    { en: "opposite", zh: ["相反","对立","对面"] },
+    { en: "patient", zh: ["病人","患者","耐心"] },
+    { en: "quiet", zh: ["安静","宁静","寂静"] },
+    { en: "receive", zh: ["收到","接收","接受"] },
+    { en: "silent", zh: ["沉默","安静","无声"] },
+    { en: "temperature", zh: ["温度","体温"] },
+    { en: "ugly", zh: ["丑陋","丑","难看"] }
+  ],
+
+  // ---- 高中 ----
+  senior: [
+    { en: "abandon", zh: ["放弃","抛弃","遗弃"] },
+    { en: "bargain", zh: ["讨价还价","便宜货","交易"] },
+    { en: "calculate", zh: ["计算","估算","推算"] },
+    { en: "deadline", zh: ["截止日期","最后期限"] },
+    { en: "elect", zh: ["选举","选择","推选"] },
+    { en: "flexible", zh: ["灵活","柔韧","可变通"] },
+    { en: "generous", zh: ["慷慨","大方","宽厚"] },
+    { en: "harmony", zh: ["和谐","和睦","协调"] },
+    { en: "identify", zh: ["识别","辨认","确认","认同"] },
+    { en: "justice", zh: ["正义","公正","公平","司法"] },
+    { en: "keen", zh: ["热衷","渴望","敏锐","热切"] },
+    { en: "launch", zh: ["发射","启动","推出","发起"] },
+    { en: "mature", zh: ["成熟","成年","到期"] },
+    { en: "negotiate", zh: ["谈判","协商","交涉"] },
+    { en: "observe", zh: ["观察","观测","遵守","庆祝"] },
+    { en: "phenomenon", zh: ["现象"] },
+    { en: "qualify", zh: ["合格","胜任","具备资格"] },
+    { en: "resist", zh: ["抵抗","抵制","抗拒","忍耐"] },
+    { en: "sacrifice", zh: ["牺牲","献祭","奉献","舍弃"] },
+    { en: "tolerate", zh: ["容忍","忍受","宽容"] }
+  ],
+
+  // ---- 四级 ----
+  cet4: [
+    { en: "accommodate", zh: ["容纳","适应","提供住宿","调解"] },
+    { en: "bureau", zh: ["局","处","办事处","写字台"] },
+    { en: "comprehensive", zh: ["全面","综合","广泛","理解"] },
+    { en: "deposit", zh: ["存款","押金","沉淀","存放"] },
+    { en: "elaborate", zh: ["详细阐述","精心制作","详尽","复杂"] },
+    { en: "fluctuate", zh: ["波动","起伏","变动"] },
+    { en: "genuine", zh: ["真正","真实","真诚","名副其实"] },
+    { en: "hesitate", zh: ["犹豫","迟疑","不情愿"] },
+    { en: "inevitable", zh: ["不可避免","必然","难免"] },
+    { en: "justify", zh: ["证明合理","辩护","为…辩解"] },
+    { en: "legislation", zh: ["法律","法规","立法"] },
+    { en: "magnificent", zh: ["壮丽","宏伟","壮观","华丽"] },
+    { en: "notion", zh: ["概念","观念","想法","见解"] },
+    { en: "obligation", zh: ["义务","责任","债务"] },
+    { en: "precaution", zh: ["预防","预防措施","警惕"] },
+    { en: "reconcile", zh: ["调和","和解","调解","使一致"] },
+    { en: "speculate", zh: ["推测","猜测","投机"] },
+    { en: "tremendous", zh: ["巨大","极大","惊人","了不起"] },
+    { en: "undermine", zh: ["破坏","削弱","逐渐损害"] },
+    { en: "violate", zh: ["违反","违犯","侵犯","践踏"] }
+  ],
+
+  // ---- 六级 ----
+  cet6: [
+    { en: "abolish", zh: ["废除","取消","废止"] },
+    { en: "bizarre", zh: ["奇异","怪诞","古怪"] },
+    { en: "chronic", zh: ["慢性","长期","积习难改"] },
+    { en: "deteriorate", zh: ["恶化","退化","变坏"] },
+    { en: "elicit", zh: ["引出","诱出","探出"] },
+    { en: "fluctuate", zh: ["波动","起伏","变动"] },
+    { en: "gracious", zh: ["亲切","和蔼","仁慈","优雅"] },
+    { en: "homogeneous", zh: ["同质","同类","均质","均匀"] },
+    { en: "imminent", zh: ["即将来临","迫近","逼近"] },
+    { en: "jeopardize", zh: ["危害","危及","损害"] },
+    { en: "legitimate", zh: ["合法","合理","正当","正统"] },
+    { en: "migrate", zh: ["迁移","移居","迁徙"] },
+    { en: "notorious", zh: ["臭名昭著","声名狼藉"] },
+    { en: "obscure", zh: ["模糊","晦涩","朦胧","遮蔽","无名"] },
+    { en: "perpetual", zh: ["永久","永恒","持续不断","长期"] },
+    { en: "quantitative", zh: ["定量","数量","量化"] },
+    { en: "rigorous", zh: ["严谨","严格","缜密","苛刻"] },
+    { en: "skeptical", zh: ["怀疑","持怀疑态度","不相信"] },
+    { en: "trivial", zh: ["琐碎","微不足道","平凡","浅薄"] },
+    { en: "vulnerable", zh: ["脆弱","易受伤","易受攻击"] }
+  ],
+
+  // ---- 专四 ----
+  tem4: [
+    { en: "aesthetic", zh: ["审美","美学","美感"] },
+    { en: "benevolent", zh: ["仁慈","慈善","善意","仁爱"] },
+    { en: "conscientious", zh: ["认真","尽责","勤恳","一丝不苟"] },
+    { en: "depreciate", zh: ["贬值","折旧","贬低","轻视"] },
+    { en: "exhilarate", zh: ["使兴奋","使振奋","使高兴"] },
+    { en: "fabricate", zh: ["制造","编造","捏造","伪造"] },
+    { en: "gruesome", zh: ["可怕","令人毛骨悚然","恐怖"] },
+    { en: "hypothetical", zh: ["假设","假想","推测"] },
+    { en: "impromptu", zh: ["即兴","即席","临时","未经准备"] },
+    { en: "jovial", zh: ["快乐","愉快","快活"] },
+    { en: "lucrative", zh: ["赚钱","获利丰厚","有利可图"] },
+    { en: "melancholy", zh: ["忧郁","忧伤","伤感","愁思"] },
+    { en: "nostalgia", zh: ["怀旧","乡愁","怀乡","留恋"] },
+    { en: "ominous", zh: ["不祥","不吉利","凶兆","不详"] },
+    { en: "plausible", zh: ["合理","可信","似乎有理","能说会道"] },
+    { en: "reciprocate", zh: ["回报","互惠","报答","往复"] },
+    { en: "scrutinize", zh: ["仔细检查","审视","细查","端详"] },
+    { en: "tedious", zh: ["乏味","冗长","单调","沉闷"] },
+    { en: "unanimous", zh: ["一致","全体一致","一致同意","无异议"] },
+    { en: "whimsical", zh: ["奇想","异想天开","古怪","反复无常"] }
+  ],
+
+  // ---- 专八 ----
+  tem8: [
+    { en: "aberration", zh: ["偏差","异常","越轨","畸变"] },
+    { en: "belligerent", zh: ["好斗","好战","交战","敌意"] },
+    { en: "clandestine", zh: ["秘密","暗中","偷偷摸摸","隐秘"] },
+    { en: "debilitate", zh: ["削弱","使虚弱","使衰弱"] },
+    { en: "ephemeral", zh: ["短暂","瞬变","朝生暮死","稍纵即逝"] },
+    { en: "facetious", zh: ["轻浮","乱开玩笑","不正经","诙谐"] },
+    { en: "garrulous", zh: ["饶舌","多嘴","喋喋不休"] },
+    { en: "hegemony", zh: ["霸权","领导权","支配权","统治"] },
+    { en: "iconoclast", zh: ["打破传统者","偶像破坏者","反传统者"] },
+    { en: "juxtapose", zh: ["并列","并置","对比","相提并论"] },
+    { en: "kudos", zh: ["荣誉","赞誉","称赞","赞扬"] },
+    { en: "lugubrious", zh: ["悲哀","忧郁","丧气","阴郁"] },
+    { en: "magnanimous", zh: ["大度","宽宏大量","慷慨","高尚"] },
+    { en: "nefarious", zh: ["邪恶","恶毒","罪恶","不道德"] },
+    { en: "obfuscate", zh: ["混淆","使模糊","故弄玄虚","迷惑"] },
+    { en: "perfunctory", zh: ["敷衍","草率","马虎","走过场"] },
+    { en: "quintessential", zh: ["典型","精髓","典范","本质"] },
+    { en: "recalcitrant", zh: ["顽固","桀骜不驯","不服管束","倔强"] },
+    { en: "sycophant", zh: ["谄媚者","奉承者","马屁精","阿谀"] },
+    { en: "verbose", zh: ["冗长","啰嗦","唠叨","累赘"] }
+  ],
+
+  // ---- 雅思 ----
+  ielts: [
+    { en: "acrimonious", zh: ["尖刻","刻薄","激烈","辛辣"] },
+    { en: "bombastic", zh: ["浮夸","夸大","华丽空洞","装腔作势"] },
+    { en: "conundrum", zh: ["难题","谜题","谜语","复杂问题"] },
+    { en: "dichotomy", zh: ["二分","分裂","对立","两分法"] },
+    { en: "esoteric", zh: ["深奥","秘传","难懂","小众"] },
+    { en: "fastidious", zh: ["挑剔","苛求","讲究","一丝不苟"] },
+    { en: "grandiose", zh: ["宏伟","浮夸","自命不凡","华而不实"] },
+    { en: "hubris", zh: ["傲慢","自大","狂妄","骄傲"] },
+    { en: "idiosyncratic", zh: ["独特","特质","个人特有","癖好"] },
+    { en: "juxtaposition", zh: ["并列","并置","对比","相提并论"] },
+    { en: "kaleidoscopic", zh: ["千变万化","万花筒式","变化多端"] },
+    { en: "loquacious", zh: ["话多","饶舌","健谈","喋喋不休"] },
+    { en: "meticulous", zh: ["细致","一丝不苟","精心","缜密"] },
+    { en: "nonchalant", zh: ["漠不关心","冷淡","若无其事","漫不经心"] },
+    { en: "ostentatious", zh: ["炫耀","卖弄","铺张","摆阔"] },
+    { en: "paradigm", zh: ["范例","范式","模式","典范"] },
+    { en: "pragmatic", zh: ["务实","实用","实事求是","注重实效"] },
+    { en: "quagmire", zh: ["沼泽","困境","泥潭","窘境"] },
+    { en: "surreptitious", zh: ["偷偷摸摸","鬼鬼祟祟","暗中","秘密"] },
+    { en: "ubiquitous", zh: ["无所不在","普遍存在","随处可见"] }
+  ]
+};
+
+// ===========================
+// 级别配置
+// ===========================
+
+const LEVELS = [
+  { id: "primary", name: "小学",  baseVocab: 1000,  color: "#52C41A" },
+  { id: "junior",  name: "初中",  baseVocab: 2000,  color: "#73D13D" },
+  { id: "senior",  name: "高中",  baseVocab: 3500,  color: "#F39C12" },
+  { id: "cet4",    name: "四级",  baseVocab: 4500,  color: "#E67E22" },
+  { id: "cet6",    name: "六级",  baseVocab: 6000,  color: "#E74C3C" },
+  { id: "tem4",    name: "专四",  baseVocab: 8000,  color: "#9B59B6" },
+  { id: "tem8",    name: "专八",  baseVocab: 13000, color: "#8E44AD" },
+  { id: "ielts",   name: "雅思",  baseVocab: 15000, color: "#2C3E50" }
+];
+
+const CONSECUTIVE_TO_ADVANCE = 3;   // 连续答对 N 题晋升
+const MAX_WRONG = 4;                // 累计错 N 题终止
+
+// ===========================
+// 状态（全内存，刷新清零）
+// ===========================
+
+let currentLevelIndex = 0;
+let consecutiveCorrect = 0;
+let totalWrong = 0;
+let totalCorrect = 0;
+let currentWord = null;
+let usedWords = null;        // Set — 当前级别已使用的单词索引
+let levelCorrectCount = 0;   // 当前级别答对数（用于结果估算）
+let isWaiting = false;       // 反馈等待中，禁止重复提交
+let bestLevelIndex = 0;      // 用户达到的最高级别下标
+
+// ===========================
+// DOM 引用
+// ===========================
+
+const $welcome  = document.getElementById("page-welcome");
+const $test     = document.getElementById("page-test");
+const $result   = document.getElementById("page-result");
+
+const $levelTag      = document.getElementById("level-tag");
+const $progressFill  = document.getElementById("progress-fill");
+const $correctCount  = document.getElementById("correct-count");
+const $wrongCount    = document.getElementById("wrong-count");
+const $wordDisplay   = document.getElementById("word-display");
+const $answerInput   = document.getElementById("answer-input");
+const $submitBtn     = document.getElementById("submit-btn");
+const $feedback      = document.getElementById("feedback");
+
+const $vocabNumber   = document.getElementById("vocab-number");
+const $levelBadge    = document.getElementById("level-badge");
+const $detailList    = document.getElementById("detail-list");
+
+// ===========================
+// 页面切换
+// ===========================
+
+function showPage(page) {
+  $welcome.classList.add("hidden");
+  $test.classList.add("hidden");
+  $result.classList.add("hidden");
+  page.classList.remove("hidden");
+}
+
+// ===========================
+// 开始测试
+// ===========================
+
+function startTest() {
+  // 重置所有状态
+  currentLevelIndex = 0;
+  consecutiveCorrect = 0;
+  totalWrong = 0;
+  totalCorrect = 0;
+  currentWord = null;
+  usedWords = new Set();
+  levelCorrectCount = 0;
+  isWaiting = false;
+  bestLevelIndex = 0;
+
+  showPage($test);
+  updateStats();
+  updateLevelUI();
+  nextWord();
+  $answerInput.focus();
+}
+
+// ===========================
+// 重新测试
+// ===========================
+
+function restartTest() {
+  startTest();
+}
+
+// ===========================
+// 更新统计显示
+// ===========================
+
+function updateStats() {
+  $correctCount.textContent = totalCorrect;
+  $wrongCount.textContent = totalWrong;
+}
+
+// ===========================
+// 更新级别 UI
+// ===========================
+
+function updateLevelUI() {
+  const level = LEVELS[currentLevelIndex];
+  $levelTag.textContent = level.name;
+  $levelTag.style.background = level.color + "22";
+  $levelTag.style.color = level.color;
+  // 进度条显示级别进度
+  const pct = (currentLevelIndex / (LEVELS.length - 1)) * 100;
+  $progressFill.style.width = pct + "%";
+  $progressFill.style.background = level.color;
+}
+
+// ===========================
+// 抽取下一题
+// ===========================
+
+function nextWord() {
+  const bank = WORD_BANKS[LEVELS[currentLevelIndex].id];
+
+  // 如果当前级别单词全部用完，重置
+  if (usedWords.size >= bank.length) {
+    usedWords.clear();
+  }
+
+  // 随机选一个未用过的
+  let idx;
+  do {
+    idx = Math.floor(Math.random() * bank.length);
+  } while (usedWords.has(idx) && usedWords.size < bank.length);
+
+  usedWords.add(idx);
+  currentWord = bank[idx];
+  $wordDisplay.textContent = currentWord.en;
+  $answerInput.value = "";
+  $feedback.textContent = "";
+  $feedback.className = "feedback";
+  $answerInput.focus();
+}
+
+// ===========================
+// 提交答案
+// ===========================
+
+function submitAnswer() {
+  if (isWaiting) return; // 反馈等待中
+  if (!currentWord) return;
+
+  const userInput = $answerInput.value.trim();
+  if (!userInput) {
+    $answerInput.focus();
+    return;
+  }
+
+  // 比对：用户输入是否包含在可接受的中文释义中，或可接受释义包含用户输入
+  const acceptable = currentWord.zh;
+  const isCorrect = acceptable.some(ans =>
+    ans === userInput || userInput.includes(ans) || ans.includes(userInput)
+  );
+
+  if (isCorrect) {
+    // ---- 正确 ----
+    totalCorrect++;
+    consecutiveCorrect++;
+    levelCorrectCount++;
+    $feedback.textContent = "✅ 正确！";
+    $feedback.className = "feedback correct";
+
+    if (bestLevelIndex < currentLevelIndex) {
+      bestLevelIndex = currentLevelIndex;
+    }
+
+    updateStats();
+
+    // 判断是否晋升
+    if (consecutiveCorrect >= CONSECUTIVE_TO_ADVANCE) {
+      if (currentLevelIndex >= LEVELS.length - 1) {
+        // 已经是最高级别（雅思），连续答对3题 → 结束
+        isWaiting = true;
+        setTimeout(() => {
+          isWaiting = false;
+          endTest();
+        }, 800);
+        return;
+      }
+      // 晋升
+      consecutiveCorrect = 0;
+      levelCorrectCount = 0;
+      currentLevelIndex++;
+      usedWords = new Set();
+      updateLevelUI();
+      showLevelUpToast(LEVELS[currentLevelIndex].name);
+      isWaiting = true;
+      setTimeout(() => {
+        isWaiting = false;
+        nextWord();
+      }, 1200);
+    } else {
+      isWaiting = true;
+      setTimeout(() => {
+        isWaiting = false;
+        nextWord();
+      }, 600);
+    }
+  } else {
+    // ---- 错误 ----
+    totalWrong++;
+    consecutiveCorrect = 0;  // 连续正确中断
+    const correctAns = currentWord.zh.join(" / ");
+    $feedback.innerHTML = `❌ 错误！<span class="correct-word">正确答案：${correctAns}</span>`;
+    $feedback.className = "feedback wrong";
+
+    if (bestLevelIndex < currentLevelIndex) {
+      bestLevelIndex = currentLevelIndex;
+    }
+
+    updateStats();
+
+    // 判断是否达到错误上限
+    if (totalWrong >= MAX_WRONG) {
+      isWaiting = true;
+      setTimeout(() => {
+        isWaiting = false;
+        endTest();
+      }, 1000);
+      return;
+    }
+
+    isWaiting = true;
+    setTimeout(() => {
+      isWaiting = false;
+      nextWord();
+    }, 1200);
+  }
+}
+
+// ===========================
+// 级别晋升 Toast
+// ===========================
+
+function showLevelUpToast(levelName) {
+  const toast = document.createElement("div");
+  toast.className = "level-up-toast";
+  toast.textContent = "🎉 晋升至：" + levelName;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2000);
+}
+
+// ===========================
+// 结束测试 → 结果页
+// ===========================
+
+function endTest() {
+  showPage($result);
+
+  // 估算词汇量
+  const vocab = estimateVocab();
+  const levelName = getVocabLevelName(vocab);
+
+  // 动画计数
+  animateCount($vocabNumber, 0, vocab, 800);
+
+  $levelBadge.textContent = levelName;
+
+  // 详细摘要
+  const reachedLevel = LEVELS[Math.max(bestLevelIndex, 0)];
+  const terminatedLevel = LEVELS[Math.min(currentLevelIndex, LEVELS.length - 1)];
+
+  $detailList.innerHTML = `
+    答对 <strong>${totalCorrect}</strong> 题 &nbsp;·&nbsp; 答错 <strong>${totalWrong}</strong> 题<br>
+    达到最高级别：<strong>${reachedLevel.name}</strong>（${reachedLevel.baseVocab.toLocaleString()} 词）<br>
+    终止时级别：<strong>${terminatedLevel.name}</strong><br>
+    <span style="color:#999;font-size:12px;">* 本测评为抽样估算，结果仅供参考</span>
+  `;
+}
+
+// ===========================
+// 词汇量估算算法
+// ===========================
+
+function estimateVocab() {
+  // 用户在 bestLevelIndex 级别展现了一定能力
+  const level = LEVELS[Math.max(bestLevelIndex, 0)];
+
+  // 基础词汇量 = 该级别的基准词汇量
+  let base = level.baseVocab;
+
+  // 根据该级别的答对情况微调
+  // 如果用户在该级别答对越多，向更高级别靠拢
+  const ratio = Math.min(levelCorrectCount / CONSECUTIVE_TO_ADVANCE, 1);
+
+  if (bestLevelIndex < LEVELS.length - 1) {
+    const nextBase = LEVELS[bestLevelIndex + 1].baseVocab;
+    // 在当前级别和下一级别之间插值
+    base = Math.round(level.baseVocab + (nextBase - level.baseVocab) * ratio * 0.8);
+  } else {
+    // 最高级别，按比例超出基准
+    base = Math.round(level.baseVocab * (1 + ratio * 0.15));
+  }
+
+  // 总正确数微调（+ 少量加成）
+  base += totalCorrect * 30;
+
+  return base;
+}
+
+function getVocabLevelName(vocab) {
+  if (vocab < 1500)  return "小学水平";
+  if (vocab < 2800)  return "初中水平";
+  if (vocab < 4000)  return "高中水平";
+  if (vocab < 5200)  return "大学四级水平";
+  if (vocab < 7000)  return "大学六级水平";
+  if (vocab < 10000) return "英语专四水平";
+  if (vocab < 14000) return "英语专八水平";
+  return "雅思/留学水平";
+}
+
+// ===========================
+// 数字动画
+// ===========================
+
+function animateCount(el, from, to, duration) {
+  const start = performance.now();
+  function tick(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    // ease-out
+    const val = Math.round(from + (to - from) * (1 - Math.pow(1 - progress, 3)));
+    el.textContent = val.toLocaleString();
+    if (progress < 1) {
+      requestAnimationFrame(tick);
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
+// ===========================
+// 键盘事件：回车提交
+// ===========================
+
+$answerInput.addEventListener("keydown", function(e) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    submitAnswer();
+  }
+});
+
+// ===========================
+// 初始化：显示欢迎页
+// ===========================
+
+showPage($welcome);
+</script>
+</body>
+</html>
